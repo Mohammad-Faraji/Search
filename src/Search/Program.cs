@@ -1,44 +1,44 @@
-var builder = WebApplication.CreateBuilder(args);
+using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.TransformManagement;
+using Elastic.Transport;
+using Microsoft.Extensions.Options;
+using Search;
+using Search.Infrastructure.Extensions;
+using static System.Net.Mime.MediaTypeNames;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.BorokerConfigure();
+builder.ElasticSearchConfigure();
+
+builder.Services.Configure<AppSettings>(builder.Configuration);
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
 app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+
+
+
+
+
+//builder.Services.AddScoped(sp =>
+//{
+//    var elasticSettings = sp.GetRequiredService<IOptions<AppSettings>>().Value.ElasticSearchOption;
+
+//    var settings = new ElasticsearchClientSettings(new Uri(elasticSettings.Host))
+//     .CertificateFingerprint("105cc986165c01d6fe7a2ac52bdc0561220022badc0700d5a0e81684949e4e12")
+//     .Authentication(new BasicAuthentication("elastic", "M@f0015795810"));
+//    return new ElasticsearchClient(settings);
+//});
