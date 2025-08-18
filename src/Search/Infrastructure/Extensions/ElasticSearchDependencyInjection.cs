@@ -7,7 +7,7 @@ namespace Search.Infrastructure.Extensions
     public static class ElasticSearchDependencyInjection
     {
         public static void ElasticSearchConfigure(this IHostApplicationBuilder builder) 
-        {
+         {
 
             builder.Services.AddScoped(sp =>
             {

@@ -1,9 +1,12 @@
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Nodes;
 using Elastic.Clients.Elasticsearch.TransformManagement;
 using Elastic.Transport;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using Search;
 using Search.Infrastructure.Extensions;
+using Search.Models;
 using static System.Net.Mime.MediaTypeNames;
 
 
@@ -26,19 +29,26 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.MapGet(pattern: "/", SearchItem);
+
 app.Run();
 
 
+static async Task<Results<Ok<IReadOnlyCollection<CatalogItemIndex>>, NotFound>> SearchItem(string qr, ElasticsearchClient elasticsearch)
+{
+
+    var response = await elasticsearch.SearchAsync<CatalogItemIndex>(s => s
+    .Indices(CatalogItemIndex.IndexName)
+    .From(0)
+    .Size(10)
+    .Query(q => q.Fuzzy(t => t.Field(x => x.Description).Value(qr)))
+
+     );
+    if (response.IsValidResponse)
+        return TypedResults.Ok(response.Documents);
+
+    return TypedResults.NotFound();
+
+}
 
 
-
-
-//builder.Services.AddScoped(sp =>
-//{
-//    var elasticSettings = sp.GetRequiredService<IOptions<AppSettings>>().Value.ElasticSearchOption;
-
-//    var settings = new ElasticsearchClientSettings(new Uri(elasticSettings.Host))
-//     .CertificateFingerprint("105cc986165c01d6fe7a2ac52bdc0561220022badc0700d5a0e81684949e4e12")
-//     .Authentication(new BasicAuthentication("elastic", "M@f0015795810"));
-//    return new ElasticsearchClient(settings);
-//});
